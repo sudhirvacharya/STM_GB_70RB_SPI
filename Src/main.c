@@ -107,6 +107,8 @@ case 'A':
 RCC->AHBENR |= (1<<17);
 #elif defined STM32G071xx
 RCC->IOPENR |= (1<<0);
+#elif defined STM32G070xx
+RCC->IOPENR |= (1<<0);
 #endif
 GPIOA->MODER &= ~(3 << (pin*2));
 GPIOA->MODER |= (mode << (pin*2));
@@ -116,6 +118,8 @@ case 'B':
 RCC->AHBENR |= (1 << 18);
 #elif defined STM32G071xx
 RCC->IOPENR |= (1<<1);
+#elif defined STM32G070xx
+RCC->IOPENR |= (1<<1);
 #endif
 GPIOB->MODER &= ~(3 << (pin*2));
 GPIOB->MODER |= (mode << (pin*2));
@@ -124,6 +128,8 @@ case 'C':
 #ifdef STM32F072xB
 RCC->AHBENR |= (1 << 19);
 #elif defined STM32G071xx
+RCC->IOPENR |= (1<<2);
+#elif defined STM32G070xx
 RCC->IOPENR |= (1<<2);
 #endif
 GPIOC->MODER &= ~(3 << (pin*2));
@@ -218,28 +224,28 @@ rdata[0]=reg;
 rdata[1]=data;
 
 W25QXX_CS_LOW();
-//SPI1_Transmit16(rdata); //Not gauranteed to work
-SPI1_Transmit(&rdata[0], 1);
-//delay(1);
-SPI1_Transmit(&rdata[1], 1);
+SPI1_Transmit16(rdata, 1); //Not gauranteed to work
+//SPI1_Transmit(&rdata[0], 1);
+delay(1);
+//SPI1_Transmit(&rdata[1], 1);
 //SPI1_Transmit(&temp, 1);
 W25QXX_CS_HIGH();
 }
 void SPI1_Transmit16(uint16_t *data,uint32_t size)
 {
-uint32_t i=0;
+	uint32_t i=0;
 
-while(i<size)
-{
-/*Wait until TXE is set*/
-while(!(SPI1->SR & (SPI_SR_TXE))){}
+	while(i<size)
+	{
+	/*Wait until TXE is set*/
+	while(!(SPI1->SR & (SPI_SR_TXE))){}
 
-/*Write the data to the data register*/
-//*(uint8_t*)&SPI1->DR = data[i];
-//*(uint8_t*)&
-SPI1->DR = data[i];
-i++;
-while((SPI1->SR & (SPI_SR_BSY))){}
+	/*Write the data to the data register*/
+	//*(uint8_t*)&SPI1->DR = data[i];
+	//*(uint8_t*)&
+	SPI1->DR = data[i];
+	i++;
+	while((SPI1->SR & (SPI_SR_BSY))){}
 }
 /*Wait until TXE is set*/
 while(!(SPI1->SR & (SPI_SR_TXE))){}
@@ -350,7 +356,8 @@ void init_dotMx_DEBUG()
     sent_data_dotMx(MAX7219_REG_DISPLAY_TEST,0x01);//Display Normal operat
 delay(1);
 }
-#define DEBUG 1
+#define DEBUG 0
+
 int main(void)
 {
 config_PLL();
@@ -370,10 +377,6 @@ init_SPI();
 while (1)
 {
 
-	MAX7219_DisplayTest();
-	delay(1000);
-	MAX7219_Clear();
-	/*
 
 MAX7219_Clear();
 MAX7219_DisplayPattern(&digit[0][0]);
@@ -383,7 +386,7 @@ MAX7219_Clear();
 MAX7219_DisplayPattern(&digit[1][0]);
 delay(1000);
 MAX7219_Clear();
-*/
+
 
 }
 
